@@ -3,6 +3,8 @@ from pathlib import Path
 from datetime import timedelta
 import psycopg2
 import environ
+from celery.schedules import crontab
+
 env = environ.Env(DEBUG=(bool, False) )
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,14 +31,16 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
+    'drf_spectacular',
     'apps.core',
-    'apps.analytics',
-    'apps.integrations',
-    'apps.procurement',
+    'apps.accounts',
     'apps.products',
-    'apps.orders',
-    'apps.transactions',
-    'apps.sales',
+    'apps.suppliers',
+    'apps.warehouses',
+    'apps.sales.apps.SalesConfig',  # (POS, Invoices, M-Pesa)
+    'apps.procurement',
+    'apps.integrations',  # (M-Pesa, SMS, ERP)
+    'apps.analytics',
 
 ]
 
@@ -50,6 +54,13 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.JSONParser',
         'rest_framework.parsers.FormParser',  # Optional: for form data
     ],
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Inventory System Api Documentation",
+    "DESCRIPTION": "Realtime Inventory Management System",
+    "VERSION": "1.0.0",
+    "SERVER_INCLUDE_SCHEMA": False,
 }
 
 APPEND_SLASH = True
@@ -86,7 +97,7 @@ ROOT_URLCONF = 'root.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Directory for custom templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,6 +143,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Celery configuration
+CELERY_BEAT_SCHEDULE = {
+    'generate-daily-reports': {
+        'task': 'apps.analytics.tasks.generate_daily_sales_report',
+        'schedule': crontab(hour=0, minute=0),  # Midnight Nairobi time
+    },
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -143,7 +161,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-#AUTH_USER_MODEL = 'accounts.CustomUser'
+# settings.py
+AUTH_USER_MODEL = 'accounts.User'
 
 # Email conf
 RESEND_KEY = env('INVENTORY_RESEND_KEY')
@@ -152,8 +171,20 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 # Static files configuration
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# M-Pesa Daraja API (Sandbox)
+MPESA_CONSUMER_KEY = env('MPESA_CONSUMER_KEY')
+MPESA_CONSUMER_SECRET = env('MPESA_CONSUMER_SECRET')
+MPESA_BUSINESS_SHORTCODE = env('MPESA_BUSINESS_SHORTCODE')
+MPESA_PASSKEY = env('MPESA_PASSKEY')
+MPESA_CALLBACK_URL = env('MPESA_CALLBACK_URL')
+# AfricasTalking SMS
+AT_USERNAME = env('AT_USERNAME')
+AT_API_KEY = env('AT_API_KEY')
+SITE_NAME = env('SITE_NAME')

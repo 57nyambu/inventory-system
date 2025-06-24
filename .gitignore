@@ -5,3 +5,4 @@ __pycache__
 tests*
 backup*
 db.sqlite3
+flow.png

@@ -99,3 +99,40 @@ SECURE_HTTP_ONLY = True
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+# AfricasTalking (Production)  
+AT_USERNAME = 'your_africastalking_username'  # e.g., 'companyke'  
+AT_API_KEY = 'your_production_api_key'  # From AfricasTalking dashboard  
+AT_SENDER_ID = 'your_shortcode_or_alphanumeric'  # e.g., 'INVENT' (approved by AfricasTalking)  
+
+"""
+Deployment Checklist
+AfricasTalking:
+~ Upgrade from sandbox to production credentials.
+~ Whitelist your server IP.
+
+M-Pesa:
+~ Replace sandbox credentials with production keys.
+~ Use HTTPS for callbacks (no ngrok in production).
+
+POS:
+~ Add CSRF protection for AJAX calls.
+~ Optimize QuaggaJS for low-light environments.
+"""
+"""
+Deployment Checklist
+Infrastructure:
+~ Redis server for Channels (WebSocket backend).
+~ Celery workers + beat scheduler.
+
+Scaling:
+
+~ Use uvicorn for ASGI in production.
+Monitor WebSocket connections with:
+
+bash
+redis-cli monitor
+Security:
+~ Add JWT auth for WebSockets.
+~ Restrict dashboard access by user role.
+"""
